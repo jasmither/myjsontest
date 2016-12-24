@@ -13,8 +13,31 @@ app.all('/', function(req, res, next) {
 app.use(bodyParser.json());
 
 app.post('/', function(req, res) {
-	console.log(JSON.stringify(req.body));
-	res.send(JSON.stringify(req.body));
+	
+	var Banking = require('banking');
+	
+	var bank = Banking({
+		  fid: req.body.fid
+		, fidOrg: req.body.fidOrg
+		, url: req.body.url
+		, bankId: req.body.bankId
+		, user: req.body.user
+		, password: req.body.password
+		, accId: req.body.accId
+		, accType: req.body.accType
+		, ofxVer: 102
+		, app: 'QBKS'
+		, appVer: '1900'
+	});
+
+	bank.getStatement({start:20161201, end:20161217}, function(err, foo) {
+		if(err) console.log(err);
+		
+		var parseString = require('xml2js').parseString;
+		parseString(foo.xml, function(err, result) {
+			res.send(result);
+		})
+	});
 });
 
 var server_port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
